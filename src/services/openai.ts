@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import {Lead} from "../types/lead";
 import dotenv from "dotenv";
 import {getPrompt} from "./prompt";
+import {leads} from "../mocks/leads";
 dotenv.config()
 const client = new OpenAI({
                             apiKey: process.env.OPENAI_API_KEY, // This is the default and can be omitted
@@ -36,8 +37,8 @@ export const generateMessage = async (lead: Lead): Promise<string> => {
     const prompt = getPrompt(lead);
     let history = [{role: 'system', content: prompt}];
     lead.messages?.forEach(message => {
-      history.push({role: 'user', content: message.lead});
       history.push({role: 'assistant', content: message.assistant});
+      history.push({role: 'user', content: message.lead});
     })
     console.log(history)
     // @ts-ignore
@@ -52,7 +53,13 @@ export const generateMessage = async (lead: Lead): Promise<string> => {
     if (toolCall?.function.name === 'updateLeadStatus') {
       const args = JSON.parse(toolCall.function.arguments);
       console.log('Function arguments extracted:', args);
-      // @ts-ignore
+      const leadIndex = leads.findIndex(lead => lead.email === args.user_email);
+        if (leadIndex !== -1) {
+            leads[leadIndex].status = args.status;
+            console.log(`Lead status updated to ${args.status}`);
+        } else {
+            console.error('Lead not found');
+        }
       response = await client.chat.completions.create({
                                                         model: 'gpt-4o-mini',
                                                           // @ts-ignore

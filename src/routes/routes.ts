@@ -4,6 +4,7 @@ import { checkLeads, replyToLead, getLeads} from '../services/follow-up';
 const router = express.Router();
 // Wrap async handlers with error handling
 router.get('/send', (req, res, next) => {
+	console.log("text")
 	checkLeads(req, res).catch(next);
 });
 
